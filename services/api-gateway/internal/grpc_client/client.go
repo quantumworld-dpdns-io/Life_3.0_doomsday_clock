@@ -121,19 +121,15 @@ func (c *Client) StreamClockStates(ctx context.Context) (<-chan ClockState, <-ch
 		defer close(errs)
 
 		if c == nil || c.risk == nil {
-			state := fallbackClockState()
 			select {
-			case states <- state:
+			case states <- fallbackClockState():
 			case <-ctx.Done():
 				errs <- ctx.Err()
 			}
 			return
 		}
 
-		callCtx, cancel := context.WithCancel(ctx)
-		defer cancel()
-
-		stream, err := c.risk.StreamClockState(callCtx, &emptypb.Empty{})
+		stream, err := c.risk.StreamClockState(ctx, &emptypb.Empty{})
 		if err != nil {
 			errs <- err
 			return
