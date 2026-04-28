@@ -1,19 +1,26 @@
 import threading
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from pydantic import BaseModel
 
 from app.runner import get_entropy_bits, get_entropy_delta
 
-app = FastAPI(title="Life 3.0 Quantum Entropy Service", version="0.1.0")
 
-
-@app.on_event("startup")
-async def _start_grpc() -> None:
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     from app.grpc_server import serve
 
     t = threading.Thread(target=serve, daemon=True, name="grpc-entropy")
     t.start()
+    yield
+
+
+app = FastAPI(
+    title="Life 3.0 Quantum Entropy Service",
+    version="0.1.0",
+    lifespan=lifespan,
+)
 
 
 @app.get("/health")

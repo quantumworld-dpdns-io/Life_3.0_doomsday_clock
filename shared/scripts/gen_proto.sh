@@ -23,7 +23,7 @@ skip_or_fail() {
 python_bin_for() {
   local service_dir="$1"
   if have uv; then
-    printf 'uv run python'
+    printf 'uv'
   elif have python3; then
     printf 'python3'
   elif have python; then
@@ -90,7 +90,16 @@ generate_python() {
     return 0
   fi
 
-  if ! (cd "$service_dir" && UV_PROJECT_ENVIRONMENT="/tmp/life3-uv-env-$service" $py_cmd -m grpc_tools.protoc --version >/dev/null 2>&1); then
+  local env_dir="/tmp/life3-uv-env-$service"
+  if [ "$py_cmd" = "uv" ]; then
+    if ! (cd "$service_dir" && UV_PROJECT_ENVIRONMENT="$env_dir" uv sync >/dev/null); then
+      skip_or_fail "Python proto stubs for $service could not sync dependencies with uv"
+      return 0
+    fi
+    py_cmd="$env_dir/bin/python"
+  fi
+
+  if ! (cd "$service_dir" && "$py_cmd" -m grpc_tools.protoc --version >/dev/null 2>&1); then
     skip_or_fail "Python proto stubs for $service require grpcio-tools"
     return 0
   fi
@@ -98,7 +107,7 @@ generate_python() {
   echo "==> Generating Python stubs for $service..."
   mkdir -p "$out_dir"
   touch "$out_dir/__init__.py"
-  (cd "$service_dir" && UV_PROJECT_ENVIRONMENT="/tmp/life3-uv-env-$service" $py_cmd -m grpc_tools.protoc -I "$PROTO_DIR" \
+  (cd "$service_dir" && "$py_cmd" -m grpc_tools.protoc -I "$PROTO_DIR" \
     --python_out="$out_dir" \
     --grpc_python_out="$out_dir" \
     "${proto_files[@]}")

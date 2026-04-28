@@ -163,12 +163,12 @@ func clockStateFromProto(state *life3proto.ClockState) ClockState {
 		return fallbackClockState()
 	}
 	return ClockState{
-		MinutesToMidnight: float64(state.GetMinutesToMidnight()),
-		DominantScenario:  scenarioName(state.GetDominantScenario()),
+		MinutesToMidnight:  float64(state.GetMinutesToMidnight()),
+		DominantScenario:   scenarioName(state.GetDominantScenario()),
 		ScenarioConfidence: float64(state.GetScenarioConfidence()),
-		ScenarioWeights:   normalizeWeights(state.GetScenarioWeights()),
-		Sigma:             float64(state.GetSigma()),
-		ComputedAt:        time.Unix(state.GetComputedAt(), 0).UTC(),
+		ScenarioWeights:    normalizeWeights(state.GetScenarioWeights()),
+		Sigma:              float64(state.GetSigma()),
+		ComputedAt:         time.Unix(state.GetComputedAt(), 0).UTC(),
 	}
 }
 
@@ -238,4 +238,3 @@ func scenarioName(id life3proto.ScenarioID) string {
 		return "UNKNOWN"
 	}
 }
-

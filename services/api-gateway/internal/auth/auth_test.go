@@ -62,4 +62,3 @@ func TestMiddlewareAcceptsIssuedToken(t *testing.T) {
 		t.Fatalf("expected status 204, got %d: %s", rec.Code, rec.Body.String())
 	}
 }
-

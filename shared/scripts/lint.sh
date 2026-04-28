@@ -34,7 +34,13 @@ lint_python_service() {
 
   [ -f "$path/pyproject.toml" ] || return 0
   if have uv; then
-    run_step "Python lint: $service" bash -lc "cd '$path' && UV_PROJECT_ENVIRONMENT='/tmp/life3-uv-env-$service' uv run --extra dev ruff check ."
+    local env_dir="/tmp/life3-uv-env-$service"
+    if (cd "$path" && UV_PROJECT_ENVIRONMENT="$env_dir" uv sync --extra dev >/dev/null); then
+      run_step "Python lint: $service" bash -lc "cd '$path' && '$env_dir/bin/ruff' check ."
+    else
+      printf '!! FAILED: Python dependency sync: %s\n' "$service" >&2
+      failures=$((failures + 1))
+    fi
   elif have ruff; then
     run_step "Python lint: $service" bash -lc "cd '$path' && ruff check ."
   else

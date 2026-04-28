@@ -67,4 +67,3 @@ func TestSubscriptionPlaceholder(t *testing.T) {
 		t.Fatalf("expected subscription placeholder payload, got %s", rec.Body.String())
 	}
 }
-

@@ -2,6 +2,7 @@ syntax = "proto3";
 package life3;
 option go_package = "github.com/life3/proto;life3proto";
 import "google/protobuf/empty.proto";
+import "scenario.proto";
 
 message ClockState {
   float          minutes_to_midnight = 1;

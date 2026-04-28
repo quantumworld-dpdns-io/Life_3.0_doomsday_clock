@@ -1,13 +1,14 @@
 package auth
 
 import (
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"net/http"
 	"strings"
 	"time"
-
-	"github.com/golang-jwt/jwt/v5"
 )
 
 type Config struct {
@@ -91,15 +92,23 @@ func (a *Authenticator) Middleware(next http.Handler) http.Handler {
 func (a *Authenticator) IssueToken(subject string) (string, time.Time, error) {
 	now := time.Now().UTC()
 	expiresAt := now.Add(a.ttl)
-	claims := jwt.RegisteredClaims{
-		Issuer:    a.issuer,
-		Subject:   subject,
-		IssuedAt:  jwt.NewNumericDate(now),
-		ExpiresAt: jwt.NewNumericDate(expiresAt),
+	claims := map[string]any{
+		"iss": a.issuer,
+		"sub": subject,
+		"iat": now.Unix(),
+		"exp": expiresAt.Unix(),
 	}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	signed, err := token.SignedString(a.jwtSecret)
-	return signed, expiresAt, err
+	header := map[string]string{"alg": "HS256", "typ": "JWT"}
+	headerJSON, err := json.Marshal(header)
+	if err != nil {
+		return "", time.Time{}, err
+	}
+	claimsJSON, err := json.Marshal(claims)
+	if err != nil {
+		return "", time.Time{}, err
+	}
+	signingInput := base64.RawURLEncoding.EncodeToString(headerJSON) + "." + base64.RawURLEncoding.EncodeToString(claimsJSON)
+	return signingInput + "." + a.sign(signingInput), expiresAt, nil
 }
 
 func (a *Authenticator) ValidateRequest(r *http.Request) error {
@@ -119,18 +128,36 @@ func (a *Authenticator) ValidateToken(raw string) error {
 		return errors.New("missing bearer token")
 	}
 
-	token, err := jwt.ParseWithClaims(raw, &jwt.RegisteredClaims{}, func(token *jwt.Token) (any, error) {
-		if token.Method != jwt.SigningMethodHS256 {
-			return nil, errors.New("unexpected signing method")
-		}
-		return a.jwtSecret, nil
-	}, jwt.WithIssuer(a.issuer))
-	if err != nil {
-		return err
-	}
-	if !token.Valid {
+	parts := strings.Split(raw, ".")
+	if len(parts) != 3 {
 		return errors.New("invalid bearer token")
+	}
+	signingInput := parts[0] + "." + parts[1]
+	if !hmac.Equal([]byte(parts[2]), []byte(a.sign(signingInput))) {
+		return errors.New("invalid bearer token signature")
+	}
+	claimsJSON, err := base64.RawURLEncoding.DecodeString(parts[1])
+	if err != nil {
+		return errors.New("invalid bearer token claims")
+	}
+	var claims struct {
+		Issuer  string `json:"iss"`
+		Expires int64  `json:"exp"`
+	}
+	if err := json.Unmarshal(claimsJSON, &claims); err != nil {
+		return errors.New("invalid bearer token claims")
+	}
+	if claims.Issuer != a.issuer {
+		return errors.New("invalid bearer token issuer")
+	}
+	if claims.Expires <= time.Now().UTC().Unix() {
+		return errors.New("expired bearer token")
 	}
 	return nil
 }
 
+func (a *Authenticator) sign(signingInput string) string {
+	mac := hmac.New(sha256.New, a.jwtSecret)
+	_, _ = mac.Write([]byte(signingInput))
+	return base64.RawURLEncoding.EncodeToString(mac.Sum(nil))
+}

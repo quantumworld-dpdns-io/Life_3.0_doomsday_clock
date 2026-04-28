@@ -113,12 +113,12 @@ func (h *Handler) mustBuildSchema() graphql.Schema {
 	clockStateType := graphql.NewObject(graphql.ObjectConfig{
 		Name: "ClockState",
 		Fields: graphql.Fields{
-			"minutesToMidnight": &graphql.Field{Type: graphql.NewNonNull(graphql.Float)},
-			"dominantScenario":  &graphql.Field{Type: graphql.NewNonNull(scenarioEnum)},
+			"minutesToMidnight":  &graphql.Field{Type: graphql.NewNonNull(graphql.Float)},
+			"dominantScenario":   &graphql.Field{Type: graphql.NewNonNull(scenarioEnum)},
 			"scenarioConfidence": &graphql.Field{Type: graphql.Float},
-			"scenarioWeights":   &graphql.Field{Type: graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(graphql.Float)))},
-			"sigma":             &graphql.Field{Type: graphql.Float},
-			"computedAt":        &graphql.Field{Type: graphql.NewNonNull(graphql.String)},
+			"scenarioWeights":    &graphql.Field{Type: graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(graphql.Float)))},
+			"sigma":              &graphql.Field{Type: graphql.Float},
+			"computedAt":         &graphql.Field{Type: graphql.NewNonNull(graphql.String)},
 		},
 	})
 
@@ -213,4 +213,3 @@ func CoerceLimit(raw string) int {
 	}
 	return limit
 }
-

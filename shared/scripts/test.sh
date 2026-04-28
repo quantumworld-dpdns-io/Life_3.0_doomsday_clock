@@ -34,7 +34,13 @@ test_python_service() {
 
   [ -f "$path/pyproject.toml" ] || return 0
   if have uv; then
-    run_step "Python tests: $service" bash -lc "cd '$path' && UV_PROJECT_ENVIRONMENT='/tmp/life3-uv-env-$service' uv run --extra dev pytest"
+    local env_dir="/tmp/life3-uv-env-$service"
+    if (cd "$path" && UV_PROJECT_ENVIRONMENT="$env_dir" uv sync --extra dev >/dev/null); then
+      run_step "Python tests: $service" bash -lc "cd '$path' && '$env_dir/bin/python' -m pytest"
+    else
+      printf '!! FAILED: Python dependency sync: %s\n' "$service" >&2
+      failures=$((failures + 1))
+    fi
   elif have python3 && python3 -m pytest --version >/dev/null 2>&1; then
     run_step "Python tests: $service" bash -lc "cd '$path' && python3 -m pytest"
   else

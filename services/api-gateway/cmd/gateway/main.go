@@ -22,9 +22,9 @@ func main() {
 	defer stop()
 
 	clients, err := grpc_client.New(ctx, grpc_client.Config{
-		RiskEngineAddr:        cfg.RiskEngineAddr,
+		RiskEngineAddr:         cfg.RiskEngineAddr,
 		IntelligenceServerAddr: cfg.IntelligenceAddr,
-		Timeout:               3 * time.Second,
+		Timeout:                3 * time.Second,
 	})
 	if err != nil {
 		log.Fatalf("initialize gRPC clients: %v", err)
@@ -93,4 +93,3 @@ func healthHandler(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	_, _ = w.Write([]byte(`{"status":"ok","service":"api-gateway"}`))
 }
-

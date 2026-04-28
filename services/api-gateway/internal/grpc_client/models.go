@@ -3,12 +3,12 @@ package grpc_client
 import "time"
 
 type ClockState struct {
-	MinutesToMidnight float64
-	DominantScenario  string
+	MinutesToMidnight  float64
+	DominantScenario   string
 	ScenarioConfidence float64
-	ScenarioWeights   []float64
-	Sigma             float64
-	ComputedAt        time.Time
+	ScenarioWeights    []float64
+	Sigma              float64
+	ComputedAt         time.Time
 }
 
 type ScenarioSignal struct {
@@ -17,4 +17,3 @@ type ScenarioSignal struct {
 	SourceURL  string
 	Timestamp  time.Time
 }
-
