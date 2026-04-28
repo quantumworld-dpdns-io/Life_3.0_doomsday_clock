@@ -75,6 +75,16 @@ make up                       # 啟動所有容器/服務
 | `DATABASE_URL` | intelligence | Postgres 連線字串 |
 | `IBMQ_TOKEN` | quantum-sim | IBM Quantum 後端 token（可選） |
 
+### Supabase 資料庫設定
+
+若使用 Supabase shared transaction pooler，請在 `.env` 或部署平台環境變數設定：
+
+```bash
+DATABASE_URL=postgresql://postgres.meslvfoeoduhbsawgawz:YOUR_URL_ENCODED_PASSWORD@aws-1-ap-southeast-2.pooler.supabase.com:6543/postgres?sslmode=require
+```
+
+密碼如果包含 `@`, `:`, `/`, `?`, `#`, `%` 等字元，需先 URL encode。不要將真實密碼提交到 Git。
+
 ### 服務埠號（Service Ports）
 
 | 服務 | HTTP | gRPC |
@@ -167,6 +177,16 @@ make up                       # starts all containers/services
 | `ENABLE_NATS` | api-gateway | Enable NATS pub/sub (default false) |
 | `DATABASE_URL` | intelligence | Postgres connection string |
 | `IBMQ_TOKEN` | quantum-sim | Optional IBM Quantum backend token |
+
+### Supabase Database
+
+For the Supabase shared transaction pooler, set this in `.env` or your deployment environment:
+
+```bash
+DATABASE_URL=postgresql://postgres.meslvfoeoduhbsawgawz:YOUR_URL_ENCODED_PASSWORD@aws-1-ap-southeast-2.pooler.supabase.com:6543/postgres?sslmode=require
+```
+
+URL-encode the password if it contains characters such as `@`, `:`, `/`, `?`, `#`, or `%`. Do not commit the real password.
 
 ### Service Ports
 
