@@ -11,6 +11,9 @@ from pathlib import Path
 
 from grpc import aio
 
+from app.config import settings
+from app.db import get_pool
+
 _PROTO_DIR = Path(__file__).parent / "proto"
 if _PROTO_DIR.exists() and str(_PROTO_DIR) not in sys.path:
     sys.path.insert(0, str(_PROTO_DIR))
@@ -21,9 +24,6 @@ try:
     _STUBS_AVAILABLE = True
 except ImportError:
     _STUBS_AVAILABLE = False
-
-from app.config import settings
-from app.db import get_pool
 
 
 async def _fetch_latest_signals(limit: int = 50) -> list[dict]:

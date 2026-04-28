@@ -1,5 +1,6 @@
 import httpx
-from datetime import datetime, timezone
+from datetime import datetime
+
 from app.models import Article
 from app.scraper.base import BaseScraper
 

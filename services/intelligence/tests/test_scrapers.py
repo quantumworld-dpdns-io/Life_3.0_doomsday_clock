@@ -5,7 +5,6 @@ from datetime import datetime, timezone
 
 from app.scraper.reuters import ReutersScraper
 from app.scraper.hackernews import HNScraper
-from app.scraper.arxiv_scraper import ArxivScraper
 
 REUTERS_RSS = """<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0">
