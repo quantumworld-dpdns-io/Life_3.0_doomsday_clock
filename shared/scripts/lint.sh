@@ -34,7 +34,7 @@ lint_python_service() {
 
   [ -f "$path/pyproject.toml" ] || return 0
   if have uv; then
-    run_step "Python lint: $service" bash -lc "cd '$path' && uv run ruff check ."
+    run_step "Python lint: $service" bash -lc "cd '$path' && UV_PROJECT_ENVIRONMENT='/tmp/life3-uv-env-$service' uv run --extra dev ruff check ."
   elif have ruff; then
     run_step "Python lint: $service" bash -lc "cd '$path' && ruff check ."
   else

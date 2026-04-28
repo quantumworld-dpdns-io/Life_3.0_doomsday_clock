@@ -34,7 +34,7 @@ test_python_service() {
 
   [ -f "$path/pyproject.toml" ] || return 0
   if have uv; then
-    run_step "Python tests: $service" bash -lc "cd '$path' && uv run pytest"
+    run_step "Python tests: $service" bash -lc "cd '$path' && UV_PROJECT_ENVIRONMENT='/tmp/life3-uv-env-$service' uv run --extra dev pytest"
   elif have python3 && python3 -m pytest --version >/dev/null 2>&1; then
     run_step "Python tests: $service" bash -lc "cd '$path' && python3 -m pytest"
   else

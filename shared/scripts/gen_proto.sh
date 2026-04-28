@@ -90,7 +90,7 @@ generate_python() {
     return 0
   fi
 
-  if ! (cd "$service_dir" && $py_cmd -m grpc_tools.protoc --version >/dev/null 2>&1); then
+  if ! (cd "$service_dir" && UV_PROJECT_ENVIRONMENT="/tmp/life3-uv-env-$service" $py_cmd -m grpc_tools.protoc --version >/dev/null 2>&1); then
     skip_or_fail "Python proto stubs for $service require grpcio-tools"
     return 0
   fi
@@ -98,7 +98,7 @@ generate_python() {
   echo "==> Generating Python stubs for $service..."
   mkdir -p "$out_dir"
   touch "$out_dir/__init__.py"
-  (cd "$service_dir" && $py_cmd -m grpc_tools.protoc -I "$PROTO_DIR" \
+  (cd "$service_dir" && UV_PROJECT_ENVIRONMENT="/tmp/life3-uv-env-$service" $py_cmd -m grpc_tools.protoc -I "$PROTO_DIR" \
     --python_out="$out_dir" \
     --grpc_python_out="$out_dir" \
     "${proto_files[@]}")

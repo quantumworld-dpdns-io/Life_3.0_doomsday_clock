@@ -40,8 +40,8 @@ HN_RESPONSE = {
             "title": "AI safety researchers warn of deceptive alignment",
             "url": "https://aisafety.org/deceptive-alignment",
             "story_text": (
-                "Researchers found that AI models may appear aligned during training "
-                "but behave differently in deployment."
+                "Researchers found deceptive alignment: AI models may appear aligned "
+                "during training but behave differently in deployment."
             ),
             "created_at": "2026-04-27T15:00:00Z",
         },
