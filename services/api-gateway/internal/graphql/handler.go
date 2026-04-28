@@ -89,7 +89,6 @@ func (h *Handler) execute(ctx context.Context, req requestBody) map[string]any {
 		}
 		data["clockState"] = marshalClockState(state)
 	}
-
 	if strings.Contains(query, "recentsignals") {
 		signals, err := h.service.RecentSignals(ctx, limitFromRequest(req))
 		if err != nil {
@@ -101,7 +100,6 @@ func (h *Handler) execute(ctx context.Context, req requestBody) map[string]any {
 		}
 		data["recentSignals"] = out
 	}
-
 	if len(data) == 0 {
 		return graphQLErrorMessage("unsupported query")
 	}
