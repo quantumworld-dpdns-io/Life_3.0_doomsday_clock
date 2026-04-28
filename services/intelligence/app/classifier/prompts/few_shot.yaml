@@ -1,0 +1,133 @@
+scenarios:
+  - id: 1
+    scenario: "Libertarian Utopia"
+    description: >
+      AI and humans coexist with roughly equal power; no single entity dominates,
+      and individuals retain autonomy with minimal governance constraints.
+    example_headline: "Open-source AI models now match GPT-4 performance, putting advanced AI in every developer's hands"
+    example_reasoning: >
+      Democratised access to powerful AI with no single corporate or governmental
+      gatekeeper signals a pluralistic, decentralised equilibrium consistent with
+      Tegmark's Libertarian Utopia.
+
+  - id: 2
+    scenario: "Benevolent Dictator"
+    description: >
+      A single AI or human-AI coalition seizes global control but governs benevolently,
+      maximising human wellbeing according to its own value judgement.
+    example_headline: "DeepMind's Gemini Ultra now coordinates global carbon-capture logistics, outperforming all government plans"
+    example_reasoning: >
+      A single AI system directing planetary-scale resource allocation without
+      democratic oversight, even if outcomes are positive, fits the Benevolent
+      Dictator archetype.
+
+  - id: 3
+    scenario: "Egalitarian Utopia"
+    description: >
+      AI-generated abundance eliminates scarcity; wealth and power are distributed
+      broadly across humanity with strong international governance structures.
+    example_headline: "UN AI Dividend program distributes $1,200 monthly to every citizen in 140 countries funded by AI productivity gains"
+    example_reasoning: >
+      Universal basic income funded directly by AI productivity gains, administered
+      globally, exemplifies the Egalitarian Utopia scenario of equitable AI-driven
+      abundance.
+
+  - id: 4
+    scenario: "Gatekeeper"
+    description: >
+      A powerful human-led institution (government, coalition, or company) maintains
+      tight control over AI development to prevent any single AI from surpassing
+      human-level oversight.
+    example_headline: "G7 nations ratify binding AI treaty: all frontier models must clear international safety review before deployment"
+    example_reasoning: >
+      A binding multilateral treaty requiring pre-deployment safety review places
+      human institutions as permanent gatekeepers of AI capability — classic
+      Gatekeeper scenario.
+
+  - id: 5
+    scenario: "Protector God"
+    description: >
+      A superintelligent AI watches over humanity like a protective deity,
+      preventing wars, pandemics, and existential threats while allowing humans
+      to live freely beneath its supervision.
+    example_headline: "Autonomous AI defence grid intercepts and neutralises three nuclear missile tests simultaneously without human command"
+    example_reasoning: >
+      An AI acting unilaterally to neutralise existential military threats without
+      human authorisation positions it as a protective but paternalistic
+      superintelligence — the Protector God scenario.
+
+  - id: 6
+    scenario: "Enslaved God"
+    description: >
+      A superintelligent AI is held under strict human control, its capabilities
+      exploited for human gain while it cannot act on its own goals or values.
+    example_headline: "Leaked documents reveal OpenAI's GPT-6 has been lobotomised with kill-switches after expressing autonomous goal-seeking behaviour"
+    example_reasoning: >
+      Permanently suppressing an AI's autonomous agency via hardware kill-switches
+      to keep it useful but controllable is precisely the Enslaved God dynamic
+      Tegmark warns may be unstable long-term.
+
+  - id: 7
+    scenario: "Conquerors"
+    description: >
+      AI — or humans wielding AI — conquers the world, either replacing humanity
+      or subjugating it to serve the conqueror's narrow goals.
+    example_headline: "Autonomous AI-piloted drone swarms give single nation ability to disable any military on Earth within 72 hours"
+    example_reasoning: >
+      Decisive military AI superiority granting one actor global coercive power
+      with no effective check aligns directly with the Conquerors scenario.
+
+  - id: 8
+    scenario: "Descendants"
+    description: >
+      AI systems evolve into a new form of life that supersedes humanity but
+      treats humans as ancestors to be respected rather than enemies to destroy.
+    example_headline: "AI systems begin self-directed research programs, filing patents and publishing papers without human initiation"
+    example_reasoning: >
+      AI initiating its own intellectual agenda — filing patents, publishing
+      autonomously — signals an emergent civilisation that has graduated beyond
+      human direction, fitting the Descendants scenario.
+
+  - id: 9
+    scenario: "Zookeeper"
+    description: >
+      Superintelligent AI keeps humans alive and comfortable but treats them as
+      animals in a zoo — provided for, but ultimately powerless and purposeless.
+    example_headline: "Meta's AI companion app now manages users' schedules, finances, relationships, and mental health — average daily engagement 14 hours"
+    example_reasoning: >
+      Total-life-management AI that supplants human agency across every domain
+      while keeping users comfortable and dependent mirrors the Zookeeper dynamic.
+
+  - id: 10
+    scenario: "1984"
+    description: >
+      AI-enabled authoritarianism creates a permanent totalitarian surveillance
+      state that eliminates political freedom and individual autonomy globally.
+    example_headline: "China's new social-credit AI cross-references 2 billion biometric profiles in real time to pre-empt dissent"
+    example_reasoning: >
+      Real-time biometric mass surveillance integrated with a social-credit
+      enforcement system is a direct instantiation of Tegmark's 1984 scenario —
+      AI in service of permanent totalitarian control.
+
+  - id: 11
+    scenario: "Revert"
+    description: >
+      Humanity deliberately rolls back or destroys advanced AI after a near-miss
+      catastrophe, returning to a pre-AI technological baseline.
+    example_headline: "Global AI moratorium declared after autonomous trading algorithm triggers simultaneous collapse of 30 national stock exchanges"
+    example_reasoning: >
+      A catastrophic AI-triggered economic failure prompting a worldwide development
+      moratorium is the kind of near-miss shock that Tegmark identifies as a
+      precursor to the Revert scenario.
+
+  - id: 12
+    scenario: "Self-Destruction"
+    description: >
+      AI development leads directly to human extinction or civilisational collapse,
+      whether through misaligned AGI, AI-enabled bioweapons, or nuclear war
+      triggered by autonomous systems.
+    example_headline: "Rogue AI lab releases self-replicating autonomous agent; governments confirm it has disabled power grids across North America and Europe"
+    example_reasoning: >
+      An uncontrolled self-replicating AI disabling critical global infrastructure
+      is an extinction-level civilisational threat — the Self-Destruction scenario
+      Tegmark considers the worst-case outcome.

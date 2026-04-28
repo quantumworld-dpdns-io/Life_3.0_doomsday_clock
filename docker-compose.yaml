@@ -1,0 +1,68 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-life3}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-life3}
+      POSTGRES_DB: ${POSTGRES_DB:-life3}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  nats:
+    image: nats:2.10-alpine
+    ports:
+      - "${NATS_PORT:-4222}:4222"
+      - "${NATS_HTTP_PORT:-8222}:8222"
+
+  intelligence:
+    build:
+      context: ./services/intelligence
+    ports:
+      - "${INTELLIGENCE_HTTP_PORT:-8001}:8001"
+      - "${INTELLIGENCE_GRPC_PORT:-50051}:50051"
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-life3}:${POSTGRES_PASSWORD:-life3}@postgres:5432/${POSTGRES_DB:-life3}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-}
+      USE_OLLAMA: ${USE_OLLAMA:-false}
+      SCRAPE_INTERVAL_MINUTES: ${SCRAPE_INTERVAL_MINUTES:-15}
+      HTTP_PORT: 8001
+      GRPC_PORT: 50051
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  quantum-sim:
+    build:
+      context: ./services/quantum-sim
+    ports:
+      - "${QUANTUM_HTTP_PORT:-8002}:8002"
+      - "${QUANTUM_GRPC_PORT:-50052}:50052"
+    environment:
+      GRPC_PORT: 50052
+
+  risk-engine:
+    build:
+      context: ./services/risk-engine
+    ports:
+      - "${RISK_HTTP_PORT:-8003}:8003"
+      - "${RISK_GRPC_PORT:-50053}:50053"
+    environment:
+      INTELLIGENCE_ADDR: http://intelligence:8001
+      QUANTUM_ADDR: http://quantum-sim:8002
+      HTTP_PORT: 8003
+      GRPC_PORT: 50053
+      RUST_LOG: ${RUST_LOG:-info}
+    depends_on:
+      - intelligence
+      - quantum-sim
+
+volumes:
+  pgdata:

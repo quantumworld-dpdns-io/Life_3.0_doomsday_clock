@@ -1,0 +1,41 @@
+syntax = "proto3";
+package life3;
+option go_package = "github.com/life3/proto;life3proto";
+
+enum ScenarioID {
+  UNKNOWN              = 0;
+  LIBERTARIAN_UTOPIA   = 1;
+  BENEVOLENT_DICTATOR  = 2;
+  EGALITARIAN_UTOPIA   = 3;
+  GATEKEEPER           = 4;
+  PROTECTOR_GOD        = 5;
+  ENSLAVED_GOD         = 6;
+  CONQUERORS           = 7;
+  DESCENDANTS          = 8;
+  ZOOKEEPER            = 9;
+  NINETEEN_EIGHTY_FOUR = 10;
+  REVERT               = 11;
+  SELF_DESTRUCTION     = 12;
+}
+
+message ScenarioSignal {
+  ScenarioID scenario   = 1;
+  float      confidence = 2;
+  string     source_url = 3;
+  int64      timestamp  = 4;
+}
+
+message ScenarioAggregate {
+  repeated float weights     = 1;  // length 13, index = ScenarioID
+  int64          computed_at = 2;
+}
+
+service IntelligenceService {
+  rpc GetLatestSignals (SignalRequest)     returns (SignalResponse);
+  rpc GetAggregate     (AggregateRequest) returns (ScenarioAggregate);
+  rpc StreamSignals    (SignalRequest)     returns (stream ScenarioSignal);
+}
+
+message SignalRequest    { int32 limit       = 1; }
+message SignalResponse   { repeated ScenarioSignal signals = 1; }
+message AggregateRequest { int32 window_days = 1; }

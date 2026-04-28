@@ -1,0 +1,23 @@
+# Base severity scores (0.0 = safe, 1.0 = catastrophic)
+# Derived from Tegmark Life 3.0 chapter 5 risk assessment
+[scenarios]
+libertarian_utopia   = 0.10
+benevolent_dictator  = 0.20
+egalitarian_utopia   = 0.15
+gatekeeper           = 0.40
+protector_god        = 0.50
+enslaved_god         = 0.55
+conquerors           = 0.70
+descendants          = 0.60
+zookeeper            = 0.65
+nineteen_eighty_four = 0.75
+revert               = 0.45
+self_destruction     = 1.00
+
+[clock]
+# Full range: 0.0 (midnight) to 60.0 (completely safe)
+base_minutes_to_midnight = 45.0
+monte_carlo_iterations   = 10000
+entropy_bits_per_step    = 8
+# Minimum minutes (cannot go to zero in normal operation)
+floor_minutes            = 0.5

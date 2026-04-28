@@ -1,0 +1,11 @@
+# Local dev overrides: mount source for the implemented Python services.
+services:
+  intelligence:
+    volumes:
+      - ./services/intelligence:/app
+    command: ["uvicorn", "app.api:app", "--host", "0.0.0.0", "--port", "8001", "--reload"]
+
+  quantum-sim:
+    volumes:
+      - ./services/quantum-sim:/app
+    command: ["uvicorn", "app.api:app", "--host", "0.0.0.0", "--port", "8002", "--reload"]
