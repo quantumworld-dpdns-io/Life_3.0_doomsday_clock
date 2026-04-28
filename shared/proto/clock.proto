@@ -1,0 +1,18 @@
+syntax = "proto3";
+package life3;
+option go_package = "github.com/life3/proto;life3proto";
+import "google/protobuf/empty.proto";
+
+message ClockState {
+  float          minutes_to_midnight = 1;
+  ScenarioID     dominant_scenario   = 2;
+  float          scenario_confidence = 3;
+  repeated float scenario_weights    = 4;
+  float          sigma               = 5;
+  int64          computed_at         = 6;
+}
+
+service RiskEngine {
+  rpc GetClockState    (google.protobuf.Empty) returns (ClockState);
+  rpc StreamClockState (google.protobuf.Empty) returns (stream ClockState);
+}

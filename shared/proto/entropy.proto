@@ -1,0 +1,13 @@
+syntax = "proto3";
+package life3;
+option go_package = "github.com/life3/proto;life3proto";
+
+message EntropyRequest  { int32 num_bits = 1; }
+message EntropyResponse {
+  repeated bool bits  = 1;
+  float         delta = 2;
+}
+
+service EntropyService {
+  rpc GetEntropy (EntropyRequest) returns (EntropyResponse);
+}

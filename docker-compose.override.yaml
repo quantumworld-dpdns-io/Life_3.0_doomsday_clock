@@ -1,0 +1,18 @@
+version: "3.9"
+# Local dev overrides — hot reload, volume mounts
+services:
+  intelligence:
+    volumes:
+      - ./services/intelligence:/app
+    command: ["uvicorn", "app.api:app", "--host", "0.0.0.0", "--port", "8001", "--reload"]
+
+  quantum-sim:
+    volumes:
+      - ./services/quantum-sim:/app
+    command: ["uvicorn", "app.api:app", "--host", "0.0.0.0", "--port", "8002", "--reload"]
+
+  web:
+    volumes:
+      - ./apps/web:/app
+      - /app/node_modules
+    command: ["npm", "run", "dev", "--", "--host"]
