@@ -74,8 +74,8 @@ services:
       API_GATEWAY_ADDR: ":4000"
       API_GATEWAY_API_KEY: ${API_GATEWAY_API_KEY:-dev-api-key}
       API_GATEWAY_JWT_SECRET: ${JWT_SECRET:-dev-secret-change-me}
-      RISK_ENGINE_GRPC_ADDR: risk-engine:50053
-      INTELLIGENCE_GRPC_ADDR: intelligence:50051
+      RISK_ENGINE_GRPC_ADDR: http://risk-engine:8003
+      INTELLIGENCE_GRPC_ADDR: http://intelligence:8001
       NATS_URL: nats://nats:4222
       ENABLE_NATS: ${ENABLE_NATS:-false}
     depends_on:
