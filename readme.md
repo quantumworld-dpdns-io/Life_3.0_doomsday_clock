@@ -14,13 +14,13 @@
 
 | 區域 | 狀態 | 備註 |
 |---|---|---|
-| Shared proto / scripts | 已有檔案 | `shared/proto/` 與 `shared/scripts/gen_proto.sh` 存在；尚待重新產生 stubs 與 CI 驗證。 |
-| Intelligence service | 部分實作 | Python app、scraper/classifier、migration、Dockerfile、tests 皆存在；尚待 lint/test 與端到端驗證。 |
-| Quantum simulator | 部分實作 | QASM circuit、runner、API/gRPC、Dockerfile、tests 皆存在；尚待 Qiskit/Aer Docker build 與 entropy 分布驗證。 |
-| Risk engine | 部分實作 | Rust source、config、build script、Dockerfile 存在；尚待 cargo test/clippy 與跨服務呼叫驗證。 |
-| API gateway | 目錄骨架 | `services/api-gateway/` 子目錄存在，但目前沒有 Go source/module 檔案。 |
-| Web frontend | 早期 Vite/source 骨架 | `apps/web/package.json`、Dockerfile、Vite/Tailwind/TypeScript config、`src/lib/*`、`src/hooks/useClockData.ts` 與 component 目錄存在；目前尚未看到 component 實作檔。 |
-| Compose / Make / CI | 已有規劃檔 | `docker-compose.yaml`、`Makefile`、`.github/workflows/ci.yaml` 存在；因 gateway 尚未有 source/module 檔、web component 實作仍待補齊，完整 `make up`、`make test`、CI 尚待驗證。 |
+| Shared proto / scripts | 已有檔案 | `shared/proto/` 與 `shared/scripts/gen_proto.sh` 存在；目前 gateway MVP 走 HTTP upstream，gRPC stub 產生仍可作為後續強化。 |
+| Intelligence service | 已實作並通過測試 | Python app、scraper/classifier、migration、Dockerfile、tests 皆存在；`uv run --extra dev pytest` 20 passed，ruff passed。 |
+| Quantum simulator | 已實作並通過測試 | QASM circuit、runner、API/gRPC、Dockerfile、tests 皆存在；`uv run --extra dev pytest` 18 passed，ruff passed。 |
+| Risk engine | 已實作並通過測試 | Rust source、config、build script、Dockerfile 存在；`cargo test` 6 passed，HTTP `/clock` 可供 gateway 讀取。 |
+| API gateway | MVP 已實作 | Go `go.mod`、Dockerfile、login/JWT、GraphQL-compatible handler、upstream client 與 tests 已存在；`go test ./...` passed。 |
+| Web frontend | MVP 已實作 | Vite React app、CRT overlay、Three.js globe、clock、scenario panel、signal feed、fallback data、tests 與 Dockerfile 已存在；build/lint/test passed。 |
+| Compose / Make / CI | 已實作 | `docker-compose.yaml`、`Makefile`、`.github/workflows/ci.yaml`、lint/test scripts 存在；`docker compose config` passed，完整 build/up 尚待最終驗證。 |
 
 ### 系統資料流（Data Flow）
 
@@ -44,7 +44,7 @@ Reuters / arXiv / HN
 
 ### 快速開始（Quick Start）
 
-完整 stack 啟動是目標流程；目前仍需先補齊/驗證 gateway 與 web component 實作。
+完整 stack 啟動流程如下；目前已完成 MVP 實作，仍建議在部署前跑完整 Docker Compose build/up 驗證。
 
 ```bash
 cp .env.example .env          # 填入 OPENAI_API_KEY 與 JWT_SECRET
@@ -107,13 +107,13 @@ This project is a **polyglot monorepo** that tracks how close the world is to Ma
 
 | Area | Status | Notes |
 |---|---|---|
-| Shared proto / scripts | Files present | `shared/proto/` and `shared/scripts/gen_proto.sh` exist; stub regeneration and CI diff checks remain pending. |
-| Intelligence service | Partially implemented | Python app, scraper/classifier modules, migration, Dockerfile, and tests are present; lint/test and end-to-end behavior remain pending verification. |
-| Quantum simulator | Partially implemented | QASM circuit, runner, API/gRPC modules, Dockerfile, and tests are present; Qiskit/Aer Docker build and entropy distribution checks remain pending. |
-| Risk engine | Partially implemented | Rust source, config, build script, and Dockerfile are present; `cargo test`/`clippy` and inter-service calls remain pending verification. |
-| API gateway | Directory scaffold | `services/api-gateway/` subdirectories exist, but no Go source/module files are currently present. |
-| Web frontend | Early Vite/source scaffold | `apps/web/package.json`, Dockerfile, Vite/Tailwind/TypeScript config, `src/lib/*`, `src/hooks/useClockData.ts`, and component directories exist; no component implementation files were observed yet. |
-| Compose / Make / CI | Planning files present | `docker-compose.yaml`, `Makefile`, and `.github/workflows/ci.yaml` exist; full `make up`, `make test`, and CI remain pending because gateway source/module files and web component implementation are still incomplete. |
+| Shared proto / scripts | Files present | `shared/proto/` and `shared/scripts/gen_proto.sh` exist; the gateway MVP currently uses HTTP upstreams, with generated gRPC stubs left as a hardening path. |
+| Intelligence service | Implemented and tested | Python app, scraper/classifier modules, migration, Dockerfile, and tests are present; `uv run --extra dev pytest` passed 20 tests and ruff passed. |
+| Quantum simulator | Implemented and tested | QASM circuit, runner, API/gRPC modules, Dockerfile, and tests are present; `uv run --extra dev pytest` passed 18 tests and ruff passed. |
+| Risk engine | Implemented and tested | Rust source, config, build script, and Dockerfile are present; `cargo test` passed 6 tests and HTTP `/clock` supports gateway reads. |
+| API gateway | MVP implemented | Go `go.mod`, Dockerfile, login/JWT, GraphQL-compatible handler, upstream client, and tests are present; `go test ./...` passed. |
+| Web frontend | MVP implemented | Vite React app, CRT overlay, Three.js globe, clock, scenario panel, signal feed, fallback data, tests, and Dockerfile are present; build/lint/test passed. |
+| Compose / Make / CI | Implemented | `docker-compose.yaml`, `Makefile`, `.github/workflows/ci.yaml`, and lint/test scripts exist; `docker compose config` passed, with full build/up still pending final verification. |
 
 ### Data Flow
 
@@ -137,7 +137,7 @@ Reuters / arXiv / HN
 
 ### Quick Start
 
-The full-stack startup below is the target flow; gateway and web component implementation still need to be added or verified first.
+The full-stack startup flow is below. The MVP implementation is present; run a full Docker Compose build/up before treating it as deployment-ready.
 
 ```bash
 cp .env.example .env          # set OPENAI_API_KEY and JWT_SECRET

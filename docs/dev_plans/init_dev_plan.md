@@ -35,28 +35,28 @@ This section tracks implementation progress without replacing the target archite
 
 | Area | Current status | Evidence in tree | Pending verification / gaps |
 |---|---|---|---|
-| Repository scaffold | Partially present | `services/`, `apps/`, `shared/`, `docs/`, `.github/workflows/ci.yaml`, `Makefile`, `docker-compose.yaml`, `docker-compose.override.yaml` | Some service/app directories exist without source files; full cold-start has not been verified in this update. |
-| Shared proto contracts | Present | `shared/proto/clock.proto`, `shared/proto/scenario.proto`, `shared/proto/entropy.proto`, `shared/scripts/gen_proto.sh` | Regenerated stubs and `git diff --exit-code` still need to be run in CI/local verification. |
-| Intelligence service | Implemented scaffold with app modules and tests present | `services/intelligence/pyproject.toml`, `Dockerfile`, `app/api.py`, `app/grpc_server.py`, scraper modules, classifier modules, DB migration, tests | Need run `uv run pytest`/lint and verify scraper/classifier behavior against real or mocked sources. |
-| Quantum entropy service | Implemented scaffold with app modules and tests present | `services/quantum-sim/pyproject.toml`, `Dockerfile`, `app/runner.py`, `app/api.py`, `app/grpc_server.py`, `app/circuits/entropy.qasm`, tests | Need run quantum tests and confirm native Qiskit/Aer dependencies build in Docker. |
-| Risk engine | Implemented scaffold with Rust source present | `services/risk-engine/Cargo.toml`, `build.rs`, `Dockerfile`, `src/main.rs`, `src/grpc_server.rs`, `src/clock/`, `src/monte_carlo/`, `src/clients.rs`, `config/scenario_weights.toml` | Need run `cargo test`/`cargo clippy`; verify generated proto bindings and live calls to intelligence/quantum services. |
-| API gateway | Directory scaffold only | `services/api-gateway/cmd/gateway/`, `internal/auth/`, `internal/graphql/`, `internal/grpc_client/` directories exist | No source files were present under `services/api-gateway` during this snapshot; Go module, Dockerfile, GraphQL schema/resolvers, and tests remain to be added or verified if another worker is still writing them. |
-| Frontend web app | Early Vite/source scaffold present | `apps/web/package.json`, `Dockerfile`, `index.html`, Vite/Tailwind/TypeScript config files, `src/vite-env.d.ts`, `src/lib/*`, `src/hooks/useClockData.ts`, and component/source directories exist | No component implementation files were present under `apps/web/src/components` during this snapshot; rendered UI, tests, and runnable frontend behavior remain to be verified if another worker is still writing them. |
-| Compose/dev commands | Planned wiring present | `docker-compose.yaml` references Postgres, NATS, intelligence, quantum-sim, risk-engine, api-gateway, and web; `Makefile` has `proto`, `build`, `up`, `down`, `logs`, `lint`, `test`, `migrate`, `clean`, `help` | `docker compose build`/`up`, `make lint`, and `make test` are pending verification; current compose and Make targets reference gateway/web paths that do not yet contain implementation files. |
-| CI | Workflow present | `.github/workflows/ci.yaml` contains proto, lint, and test jobs for Go, Python, Rust, and frontend | CI likely needs updates once gateway/web source files are committed; current jobs may fail on empty gateway/web directories. |
+| Repository scaffold | Present | `services/`, `apps/`, `shared/`, `docs/`, `.github/workflows/ci.yaml`, `Makefile`, `docker-compose.yaml`, `docker-compose.override.yaml` | Full `docker compose up` cold-start still needs an end-to-end run. |
+| Shared proto contracts | Present | `shared/proto/clock.proto`, `shared/proto/scenario.proto`, `shared/proto/entropy.proto`, `shared/scripts/gen_proto.sh` | Generator skips missing local toolchains gracefully; current gateway MVP uses HTTP upstreams while gRPC stubs remain a hardening path. |
+| Intelligence service | Implemented and tested | `services/intelligence/pyproject.toml`, `Dockerfile`, `app/api.py`, `app/grpc_server.py`, scraper modules, classifier modules, DB migration, tests | `uv run --extra dev pytest` passed 20 tests; `ruff check` passed. Live scraper/LLM behavior still needs real-credential validation. |
+| Quantum entropy service | Implemented and tested | `services/quantum-sim/pyproject.toml`, `Dockerfile`, `app/runner.py`, `app/api.py`, `app/grpc_server.py`, `app/circuits/entropy.qasm`, tests | `uv run --extra dev pytest` passed 18 tests; `ruff check` passed. Docker build with native Qiskit/Aer remains a deployment verification item. |
+| Risk engine | Implemented and tested | `services/risk-engine/Cargo.toml`, `build.rs`, `Dockerfile`, `src/main.rs`, `src/grpc_server.rs`, `src/clock/`, `src/monte_carlo/`, `src/clients.rs`, `config/scenario_weights.toml` | `cargo test` passed 6 tests. Gateway integration currently uses HTTP `/clock`; full Tonic gRPC service remains planned. |
+| API gateway | Implemented MVP | `services/api-gateway/go.mod`, `Dockerfile`, `cmd/gateway/main.go`, `internal/auth/`, `internal/graphql/`, `internal/grpc_client/` | `go test ./...` passed. Gateway uses a dependency-light GraphQL-compatible HTTP handler and HTTP upstream clients until generated gRPC stubs are available. |
+| Frontend web app | Implemented MVP | `apps/web/package.json`, lockfile, `Dockerfile`, `index.html`, Vite/Tailwind/TypeScript config, `src/App.tsx`, components, hooks, lib, styles, tests | `npm run build`, `npm run lint`, and `npm test -- --run` passed. Dev server was verified at `http://localhost:3000/`. |
+| Compose/dev commands | Implemented | `docker-compose.yaml`, `docker-compose.override.yaml`, `Makefile`, `shared/scripts/lint.sh`, `shared/scripts/test.sh`, `shared/scripts/seed_db.sh` | `docker compose config` passed. Full compose build/up remains pending after gateway Dockerfile simplification. |
+| CI | Implemented workflow | `.github/workflows/ci.yaml` contains proto, lint, and test jobs for Go, Python, Rust, and frontend | CI should be run remotely after commit; local service-level tests passed. |
 
 ### Phase Progress
 
 | Phase | Progress | Notes |
 |---|---|---|
-| 0 - Scaffold | Partial | Core monorepo directories, compose, Makefile, CI, shared protos, and service directories are present. Gateway/web are directory-only at this snapshot. |
-| 1 - Data Pipeline | Partial | Intelligence service files for API, DB, scrapers, classifier, scheduler, gRPC, migration, Dockerfile, and tests are present. Runtime behavior has not been verified here. |
-| 2 - Entropy | Partial | Quantum service files, QASM circuit, runner/API/gRPC modules, Dockerfile, and tests are present. Entropy distribution and Docker build remain pending verification. |
-| 3 - Risk Engine | Partial | Rust engine source, config, build script, Dockerfile, and gRPC/clock/Monte Carlo module paths are present. Tests and inter-service calls remain pending verification. |
-| 4 - Gateway | Not yet implemented in files | Directory skeleton exists, but no Go source/module files were present during this snapshot. |
-| 5 - Frontend MVP | Early scaffold | Vite/package/config files plus frontend lib/hook files and component directories exist, but no component implementation files were present under `apps/web/src/components` during this snapshot. |
-| 6 - Polish | Not started | CRT/glitch/shader/ticker features remain planned until frontend source exists. |
-| 7 - Hardening | Not started | Production hardening should follow a verified runnable stack. |
+| 0 - Scaffold | Complete for MVP | Core monorepo directories, compose, Makefile, CI, shared protos, and service/app directories are present. |
+| 1 - Data Pipeline | Implemented/tested | Intelligence API, DB, scrapers, classifier, scheduler, gRPC module, migration, Dockerfile, and tests are present. |
+| 2 - Entropy | Implemented/tested | Quantum service, QASM circuit, runner/API/gRPC modules, Dockerfile, and entropy tests are present. |
+| 3 - Risk Engine | Implemented/tested | Rust engine computes clock state, exposes health and HTTP clock state, and has Monte Carlo unit tests. |
+| 4 - Gateway | Implemented MVP | Go gateway exposes health, login/JWT, and GraphQL-compatible clock/signals endpoints with fallback behavior. |
+| 5 - Frontend MVP | Implemented/tested | Vite React UI includes CRT overlay, globe, doomsday clock, scenario panel, signal feed, fallback data, and tests. |
+| 6 - Polish | Partial | CRT/glitch, low-poly globe, ticker, and dark visual system are implemented; shader-level disintegration and deeper UX polish remain future work. |
+| 7 - Hardening | In progress | Unit tests pass per service; remaining hardening is full Docker Compose build/up, remote CI, gRPC stub integration, and production auth/secrets. |
 
 ---
 
