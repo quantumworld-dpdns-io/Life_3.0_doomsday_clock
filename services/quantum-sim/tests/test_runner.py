@@ -52,3 +52,15 @@ def test_entropy_bits_single():
     bits = get_entropy_bits(1)
     assert len(bits) == 1
     assert isinstance(bits[0], bool)
+
+
+@pytest.mark.parametrize("num_bits", [0, -1])
+def test_entropy_bits_rejects_nonpositive_requests(num_bits):
+    with pytest.raises(ValueError, match="num_bits"):
+        get_entropy_bits(num_bits)
+
+
+@pytest.mark.parametrize("num_bits", [0, -1])
+def test_entropy_delta_rejects_nonpositive_requests(num_bits):
+    with pytest.raises(ValueError, match="num_bits"):
+        get_entropy_delta(num_bits)

@@ -22,7 +22,8 @@ class HNScraper(BaseScraper):
 
         articles: list[Article] = []
         for hit in data.get("hits", []):
-            url = hit.get("url") or f"https://news.ycombinator.com/item?id={hit.get('objectID', '')}"
+            object_id = hit.get("objectID", "")
+            url = hit.get("url") or f"https://news.ycombinator.com/item?id={object_id}"
             title = hit.get("title", "")
             body = hit.get("story_text") or title
             created_at_raw = hit.get("created_at")
@@ -33,5 +34,13 @@ class HNScraper(BaseScraper):
                 except Exception:
                     pass
             if url and title:
-                articles.append(Article(url=url, title=title, body=body, published_at=published_at, source="hackernews"))
+                articles.append(
+                    Article(
+                        url=url,
+                        title=title,
+                        body=body,
+                        published_at=published_at,
+                        source="hackernews",
+                    )
+                )
         return articles

@@ -1,81 +1,68 @@
-version: "3.9"
-
 services:
   postgres:
     image: postgres:16-alpine
     environment:
-      POSTGRES_USER: life3
-      POSTGRES_PASSWORD: life3
-      POSTGRES_DB: life3
+      POSTGRES_USER: ${POSTGRES_USER:-life3}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-life3}
+      POSTGRES_DB: ${POSTGRES_DB:-life3}
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U life3"]
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
       interval: 5s
+      timeout: 5s
       retries: 10
 
   nats:
     image: nats:2.10-alpine
     ports:
-      - "4222:4222"
-      - "8222:8222"
+      - "${NATS_PORT:-4222}:4222"
+      - "${NATS_HTTP_PORT:-8222}:8222"
 
   intelligence:
-    build: ./services/intelligence
+    build:
+      context: ./services/intelligence
     ports:
-      - "8001:8001"
-      - "50051:50051"
+      - "${INTELLIGENCE_HTTP_PORT:-8001}:8001"
+      - "${INTELLIGENCE_GRPC_PORT:-50051}:50051"
     environment:
-      DATABASE_URL: postgres://life3:life3@postgres:5432/life3
+      DATABASE_URL: postgres://${POSTGRES_USER:-life3}:${POSTGRES_PASSWORD:-life3}@postgres:5432/${POSTGRES_DB:-life3}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-}
+      USE_OLLAMA: ${USE_OLLAMA:-false}
+      SCRAPE_INTERVAL_MINUTES: ${SCRAPE_INTERVAL_MINUTES:-15}
+      HTTP_PORT: 8001
+      GRPC_PORT: 50051
     depends_on:
       postgres:
         condition: service_healthy
 
   quantum-sim:
-    build: ./services/quantum-sim
+    build:
+      context: ./services/quantum-sim
     ports:
-      - "8002:8002"
-      - "50052:50052"
+      - "${QUANTUM_HTTP_PORT:-8002}:8002"
+      - "${QUANTUM_GRPC_PORT:-50052}:50052"
+    environment:
+      GRPC_PORT: 50052
 
   risk-engine:
-    build: ./services/risk-engine
+    build:
+      context: ./services/risk-engine
     ports:
-      - "8003:8003"
-      - "50053:50053"
+      - "${RISK_HTTP_PORT:-8003}:8003"
+      - "${RISK_GRPC_PORT:-50053}:50053"
     environment:
-      INTELLIGENCE_GRPC_ADDR: intelligence:50051
-      QUANTUM_GRPC_ADDR: quantum-sim:50052
+      INTELLIGENCE_ADDR: http://intelligence:8001
+      QUANTUM_ADDR: http://quantum-sim:8002
+      HTTP_PORT: 8003
+      GRPC_PORT: 50053
+      RUST_LOG: ${RUST_LOG:-info}
     depends_on:
       - intelligence
       - quantum-sim
-
-  api-gateway:
-    build: ./services/api-gateway
-    ports:
-      - "4000:4000"
-    environment:
-      RISK_ENGINE_GRPC_ADDR: risk-engine:50053
-      INTELLIGENCE_GRPC_ADDR: intelligence:50051
-      NATS_URL: nats://nats:4222
-      JWT_SECRET: ${JWT_SECRET:-changeme-in-production}
-      ENABLE_NATS: ${ENABLE_NATS:-false}
-    depends_on:
-      - risk-engine
-      - nats
-
-  web:
-    build: ./apps/web
-    ports:
-      - "3000:3000"
-    environment:
-      VITE_GRAPHQL_HTTP: http://localhost:4000/graphql
-      VITE_GRAPHQL_WS: ws://localhost:4000/graphql
-    depends_on:
-      - api-gateway
 
 volumes:
   pgdata:

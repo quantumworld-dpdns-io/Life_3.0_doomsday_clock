@@ -39,11 +39,27 @@ HN_RESPONSE = {
             "objectID": "67890",
             "title": "AI safety researchers warn of deceptive alignment",
             "url": "https://aisafety.org/deceptive-alignment",
-            "story_text": "Researchers found that AI models may appear aligned during training but behave differently in deployment.",
+            "story_text": (
+                "Researchers found that AI models may appear aligned during training "
+                "but behave differently in deployment."
+            ),
             "created_at": "2026-04-27T15:00:00Z",
         },
     ]
 }
+
+FLI_RSS = """<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Future of Life Institute</title>
+    <item>
+      <title>AI governance update</title>
+      <link>https://futureoflife.org/ai-governance-update/</link>
+      <description>Policy makers publish a new AI safety framework.</description>
+      <pubDate>Mon, 28 Apr 2026 08:00:00 +0000</pubDate>
+    </item>
+  </channel>
+</rss>"""
 
 
 @pytest.mark.asyncio
@@ -127,6 +143,23 @@ async def test_hackernews_scraper_http_error_returns_empty():
         articles = await scraper.fetch()
 
     assert articles == []
+
+
+@pytest.mark.asyncio
+async def test_fli_scraper_returns_articles():
+    from app.scraper.fli import FLIScraper
+
+    with respx.mock:
+        respx.get("https://futureoflife.org/feed/").mock(
+            return_value=httpx.Response(200, text=FLI_RSS)
+        )
+        scraper = FLIScraper()
+        articles = await scraper.fetch()
+
+    assert len(articles) == 1
+    assert articles[0].title == "AI governance update"
+    assert articles[0].url == "https://futureoflife.org/ai-governance-update/"
+    assert articles[0].source == "fli"
 
 
 @pytest.mark.asyncio

@@ -1,18 +1,23 @@
 """
 gRPC server for the Intelligence Service.
 
-Proto-generated stubs (scenario_pb2, scenario_pb2_grpc) are generated from
-shared/proto/scenario.proto via `make proto`. Until stubs exist the server
-registers a no-op fallback so the FastAPI app can still start.
+Proto-generated stubs are written to app/proto by shared/scripts/gen_proto.sh.
+Until stubs exist the server exits cleanly so the FastAPI app can still start.
 """
 import asyncio
+import sys
 import time
+from pathlib import Path
 
-import grpc
 from grpc import aio
 
+_PROTO_DIR = Path(__file__).parent / "proto"
+if _PROTO_DIR.exists() and str(_PROTO_DIR) not in sys.path:
+    sys.path.insert(0, str(_PROTO_DIR))
+
 try:
-    from generated import scenario_pb2, scenario_pb2_grpc  # type: ignore
+    from app.proto import scenario_pb2, scenario_pb2_grpc  # type: ignore
+
     _STUBS_AVAILABLE = True
 except ImportError:
     _STUBS_AVAILABLE = False
@@ -54,8 +59,13 @@ async def _fetch_aggregate(window_days: int = 7) -> list[float]:
     return weights
 
 
+def _signal_timestamp(signal: dict) -> int:
+    created_at = signal["created_at"]
+    return int(created_at.timestamp()) if created_at else int(time.time())
+
+
 if _STUBS_AVAILABLE:
-    class ScenarioSignalServicer(scenario_pb2_grpc.ScenarioSignalServiceServicer):  # type: ignore
+    class IntelligenceServicer(scenario_pb2_grpc.IntelligenceServiceServicer):  # type: ignore
         async def GetLatestSignals(self, request, context):
             signals = await _fetch_latest_signals(request.limit or 50)
             response_signals = []
@@ -64,13 +74,16 @@ if _STUBS_AVAILABLE:
                     scenario=s["scenario"],
                     confidence=s["confidence"],
                     source_url=s["url"],
-                    timestamp=int(s["created_at"].timestamp()) if s["created_at"] else int(time.time()),
+                    timestamp=_signal_timestamp(s),
                 ))
-            return scenario_pb2.GetLatestSignalsResponse(signals=response_signals)  # type: ignore
+            return scenario_pb2.SignalResponse(signals=response_signals)  # type: ignore
 
         async def GetAggregate(self, request, context):
             weights = await _fetch_aggregate(request.window_days or 7)
-            return scenario_pb2.AggregateResponse(weights=weights)  # type: ignore
+            return scenario_pb2.ScenarioAggregate(  # type: ignore
+                weights=weights,
+                computed_at=int(time.time()),
+            )
 
         async def StreamSignals(self, request, context):
             while context.is_active():
@@ -80,14 +93,14 @@ if _STUBS_AVAILABLE:
                         scenario=s["scenario"],
                         confidence=s["confidence"],
                         source_url=s["url"],
-                        timestamp=int(s["created_at"].timestamp()) if s["created_at"] else int(time.time()),
+                        timestamp=_signal_timestamp(s),
                     )
                 await asyncio.sleep(30)
 
     async def serve():
         server = aio.server()
-        scenario_pb2_grpc.add_ScenarioSignalServiceServicer_to_server(  # type: ignore
-            ScenarioSignalServicer(), server
+        scenario_pb2_grpc.add_IntelligenceServiceServicer_to_server(  # type: ignore
+            IntelligenceServicer(), server
         )
         server.add_insecure_port(f"[::]:{settings.grpc_port}")
         await server.start()

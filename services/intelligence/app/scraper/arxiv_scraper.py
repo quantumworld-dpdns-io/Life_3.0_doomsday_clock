@@ -20,17 +20,23 @@ class ArxivScraper(BaseScraper):
 
     def _fetch_sync(self) -> list[Article]:
         client = arxiv.Client(page_size=10, delay_seconds=1)
-        search = arxiv.Search(query=QUERY, max_results=10, sort_by=arxiv.SortCriterion.SubmittedDate)
+        search = arxiv.Search(
+            query=QUERY,
+            max_results=10,
+            sort_by=arxiv.SortCriterion.SubmittedDate,
+        )
         articles = []
         for result in client.results(search):
             published_at = result.published
             if published_at and published_at.tzinfo is None:
                 published_at = published_at.replace(tzinfo=timezone.utc)
-            articles.append(Article(
-                url=result.entry_id,
-                title=result.title,
-                body=result.summary,
-                published_at=published_at,
-                source="arxiv",
-            ))
+            articles.append(
+                Article(
+                    url=result.entry_id,
+                    title=result.title,
+                    body=result.summary,
+                    published_at=published_at,
+                    source="arxiv",
+                )
+            )
         return articles

@@ -1,9 +1,10 @@
 import asyncio
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, suppress
 from pathlib import Path
 
-from fastapi import FastAPI, Header, HTTPException
+from fastapi import FastAPI, Header, HTTPException, Query
 
+from app.config import settings
 from app.db import close_pool, get_pool
 from app.scheduler import start_scheduler, stop_scheduler
 
@@ -15,9 +16,17 @@ async def lifespan(app: FastAPI):
     async with pool.acquire() as conn:
         await conn.execute(migration_sql)
     start_scheduler()
-    yield
-    stop_scheduler()
-    await close_pool()
+    from app.grpc_server import serve as serve_grpc
+
+    grpc_task = asyncio.create_task(serve_grpc(), name="intelligence-grpc")
+    try:
+        yield
+    finally:
+        stop_scheduler()
+        grpc_task.cancel()
+        with suppress(asyncio.CancelledError):
+            await grpc_task
+        await close_pool()
 
 
 app = FastAPI(title="Life 3.0 Intelligence Service", lifespan=lifespan)
@@ -29,7 +38,7 @@ async def health():
 
 
 @app.get("/signals/latest")
-async def latest_signals(limit: int = 50):
+async def latest_signals(limit: int = Query(50, ge=1, le=100)):
     pool = await get_pool()
     rows = await pool.fetch(
         """
@@ -55,7 +64,7 @@ async def latest_signals(limit: int = 50):
 
 
 @app.get("/signals/aggregate")
-async def aggregate_signals(window_days: int = 7):
+async def aggregate_signals(window_days: int = Query(7, ge=1, le=365)):
     pool = await get_pool()
     rows = await pool.fetch(
         """
@@ -75,9 +84,7 @@ async def aggregate_signals(window_days: int = 7):
 
 @app.post("/scrape/trigger")
 async def trigger_scrape(x_admin_key: str = Header(...)):
-    from app.config import settings
-
-    if x_admin_key != settings.openai_api_key and x_admin_key != "admin":
+    if x_admin_key != settings.admin_api_key:
         raise HTTPException(status_code=403, detail="Invalid admin key")
     asyncio.create_task(_run_scrape())
     return {"status": "triggered"}

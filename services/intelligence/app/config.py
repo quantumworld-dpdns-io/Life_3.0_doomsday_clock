@@ -3,6 +3,7 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     database_url: str = "postgres://life3:life3@localhost:5432/life3"
+    admin_api_key: str = "admin"
     openai_api_key: str = ""
     ollama_base_url: str = ""
     use_ollama: bool = False

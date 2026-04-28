@@ -40,7 +40,8 @@ _FEW_SHOTS = _load_few_shots()
 
 SYSTEM_PROMPT = (
     "You are an AI risk analyst specialising in Max Tegmark's Life 3.0 framework.\n"
-    "Given a news article, classify it into exactly one of the 12 Life 3.0 AI evolution scenarios.\n"
+    "Given a news article, classify it into exactly one of the 12 Life 3.0 AI "
+    "evolution scenarios.\n"
     'Return ONLY valid JSON: {{"scenario_id": <1-12>, "scenario_name": "<name>", '
     '"confidence": <0.0-1.0>, "reasoning": "<one sentence>"}}\n\n'
     "Scenarios and examples:\n{few_shots}"

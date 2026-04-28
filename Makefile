@@ -1,41 +1,39 @@
-.PHONY: proto build up down logs lint test migrate clean help
+SHELL := /usr/bin/env bash
+COMPOSE ?= docker compose
 
-proto: ## Generate gRPC stubs for all services
+.DEFAULT_GOAL := help
+
+.PHONY: build up down logs lint test proto migrate clean config help
+
+build: ## Build Docker images for implemented services
+	$(COMPOSE) build
+
+up: ## Start project services in the background
+	$(COMPOSE) up -d --build
+
+down: ## Stop project services
+	$(COMPOSE) down
+
+logs: ## Tail service logs
+	$(COMPOSE) logs -f --tail=200
+
+test: ## Run available test suites
+	bash shared/scripts/test.sh
+
+lint: ## Run available linters
+	bash shared/scripts/lint.sh
+
+proto: ## Generate gRPC stubs where toolchains are available
 	bash shared/scripts/gen_proto.sh
-
-build: ## Build all Docker images
-	docker compose build
-
-up: ## Start all services in background
-	docker compose up -d
-
-down: ## Stop all services
-	docker compose down
-
-logs: ## Tail all service logs
-	docker compose logs -f
-
-lint: ## Lint all services
-	@echo "--- Go ---" && cd services/api-gateway && golangci-lint run ./...
-	@echo "--- Python intelligence ---" && cd services/intelligence && ruff check .
-	@echo "--- Python quantum-sim ---" && cd services/quantum-sim && ruff check .
-	@echo "--- Rust ---" && cd services/risk-engine && cargo clippy -- -D warnings
-	@echo "--- Frontend ---" && cd apps/web && npm run lint
-
-test: ## Run all unit tests
-	@echo "--- Go ---" && cd services/api-gateway && go test ./...
-	@echo "--- Python intelligence ---" && cd services/intelligence && pytest
-	@echo "--- Python quantum-sim ---" && cd services/quantum-sim && pytest
-	@echo "--- Rust ---" && cd services/risk-engine && cargo test
-	@echo "--- Frontend ---" && cd apps/web && npm test -- --run
 
 migrate: ## Run database migrations
 	bash shared/scripts/seed_db.sh
 
-clean: ## Remove build artifacts
-	docker compose down -v
-	cd services/risk-engine && cargo clean
-	cd apps/web && rm -rf dist node_modules
+clean: ## Stop services and remove compose volumes
+	$(COMPOSE) down -v
+
+config: ## Validate rendered Docker Compose configuration
+	$(COMPOSE) config
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'

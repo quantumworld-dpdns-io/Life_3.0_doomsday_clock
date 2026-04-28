@@ -38,5 +38,13 @@ class FLIScraper(BaseScraper):
                 except Exception:
                     pass
             if url:
-                articles.append(Article(url=url, title=title, body=body, published_at=published_at, source="fli"))
+                articles.append(
+                    Article(
+                        url=url,
+                        title=title,
+                        body=body,
+                        published_at=published_at,
+                        source="fli",
+                    )
+                )
         return articles

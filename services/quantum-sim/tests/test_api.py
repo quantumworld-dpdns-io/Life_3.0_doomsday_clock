@@ -1,9 +1,18 @@
 import pytest
 from fastapi.testclient import TestClient
 
-from app.api import app
+from app import api
 
-client = TestClient(app)
+client = TestClient(api.app)
+
+
+@pytest.fixture(autouse=True)
+def deterministic_entropy(monkeypatch):
+    def fake_bits(num_bits: int):
+        return [(i % 2) == 1 for i in range(num_bits)]
+
+    monkeypatch.setattr(api, "get_entropy_bits", fake_bits)
+    monkeypatch.setattr(api, "get_entropy_delta", lambda num_bits=8: 0.25)
 
 
 def test_health():
@@ -51,4 +60,4 @@ def test_delta_endpoint():
     r = client.get("/entropy/delta")
     assert r.status_code == 200
     delta = r.json()["delta"]
-    assert -1.0 <= delta <= 1.0
+    assert delta == 0.25

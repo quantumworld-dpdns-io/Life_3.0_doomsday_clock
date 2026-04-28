@@ -27,6 +27,39 @@ Reuters / arXiv / HN
 
 ---
 
+## Current Implementation Snapshot
+
+**Observed:** 2026-04-28 from the current working tree.
+
+This section tracks implementation progress without replacing the target architecture below. Items are marked present only when corresponding files or directories currently exist in the repo.
+
+| Area | Current status | Evidence in tree | Pending verification / gaps |
+|---|---|---|---|
+| Repository scaffold | Partially present | `services/`, `apps/`, `shared/`, `docs/`, `.github/workflows/ci.yaml`, `Makefile`, `docker-compose.yaml`, `docker-compose.override.yaml` | Some service/app directories exist without source files; full cold-start has not been verified in this update. |
+| Shared proto contracts | Present | `shared/proto/clock.proto`, `shared/proto/scenario.proto`, `shared/proto/entropy.proto`, `shared/scripts/gen_proto.sh` | Regenerated stubs and `git diff --exit-code` still need to be run in CI/local verification. |
+| Intelligence service | Implemented scaffold with app modules and tests present | `services/intelligence/pyproject.toml`, `Dockerfile`, `app/api.py`, `app/grpc_server.py`, scraper modules, classifier modules, DB migration, tests | Need run `uv run pytest`/lint and verify scraper/classifier behavior against real or mocked sources. |
+| Quantum entropy service | Implemented scaffold with app modules and tests present | `services/quantum-sim/pyproject.toml`, `Dockerfile`, `app/runner.py`, `app/api.py`, `app/grpc_server.py`, `app/circuits/entropy.qasm`, tests | Need run quantum tests and confirm native Qiskit/Aer dependencies build in Docker. |
+| Risk engine | Implemented scaffold with Rust source present | `services/risk-engine/Cargo.toml`, `build.rs`, `Dockerfile`, `src/main.rs`, `src/grpc_server.rs`, `src/clock/`, `src/monte_carlo/`, `src/clients.rs`, `config/scenario_weights.toml` | Need run `cargo test`/`cargo clippy`; verify generated proto bindings and live calls to intelligence/quantum services. |
+| API gateway | Directory scaffold only | `services/api-gateway/cmd/gateway/`, `internal/auth/`, `internal/graphql/`, `internal/grpc_client/` directories exist | No source files were present under `services/api-gateway` during this snapshot; Go module, Dockerfile, GraphQL schema/resolvers, and tests remain to be added or verified if another worker is still writing them. |
+| Frontend web app | Early Vite/source scaffold present | `apps/web/package.json`, `Dockerfile`, `index.html`, Vite/Tailwind/TypeScript config files, `src/vite-env.d.ts`, `src/lib/*`, `src/hooks/useClockData.ts`, and component/source directories exist | No component implementation files were present under `apps/web/src/components` during this snapshot; rendered UI, tests, and runnable frontend behavior remain to be verified if another worker is still writing them. |
+| Compose/dev commands | Planned wiring present | `docker-compose.yaml` references Postgres, NATS, intelligence, quantum-sim, risk-engine, api-gateway, and web; `Makefile` has `proto`, `build`, `up`, `down`, `logs`, `lint`, `test`, `migrate`, `clean`, `help` | `docker compose build`/`up`, `make lint`, and `make test` are pending verification; current compose and Make targets reference gateway/web paths that do not yet contain implementation files. |
+| CI | Workflow present | `.github/workflows/ci.yaml` contains proto, lint, and test jobs for Go, Python, Rust, and frontend | CI likely needs updates once gateway/web source files are committed; current jobs may fail on empty gateway/web directories. |
+
+### Phase Progress
+
+| Phase | Progress | Notes |
+|---|---|---|
+| 0 - Scaffold | Partial | Core monorepo directories, compose, Makefile, CI, shared protos, and service directories are present. Gateway/web are directory-only at this snapshot. |
+| 1 - Data Pipeline | Partial | Intelligence service files for API, DB, scrapers, classifier, scheduler, gRPC, migration, Dockerfile, and tests are present. Runtime behavior has not been verified here. |
+| 2 - Entropy | Partial | Quantum service files, QASM circuit, runner/API/gRPC modules, Dockerfile, and tests are present. Entropy distribution and Docker build remain pending verification. |
+| 3 - Risk Engine | Partial | Rust engine source, config, build script, Dockerfile, and gRPC/clock/Monte Carlo module paths are present. Tests and inter-service calls remain pending verification. |
+| 4 - Gateway | Not yet implemented in files | Directory skeleton exists, but no Go source/module files were present during this snapshot. |
+| 5 - Frontend MVP | Early scaffold | Vite/package/config files plus frontend lib/hook files and component directories exist, but no component implementation files were present under `apps/web/src/components` during this snapshot. |
+| 6 - Polish | Not started | CRT/glitch/shader/ticker features remain planned until frontend source exists. |
+| 7 - Hardening | Not started | Production hardening should follow a verified runnable stack. |
+
+---
+
 ## 1. Repository Scaffold
 
 ### 1.1 Target Directory Tree

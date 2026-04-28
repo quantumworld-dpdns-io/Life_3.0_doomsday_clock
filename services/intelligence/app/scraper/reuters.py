@@ -33,5 +33,13 @@ class ReutersScraper(BaseScraper):
                 except Exception:
                     pass
             if url:
-                articles.append(Article(url=url, title=title, body=body, published_at=published_at, source="reuters"))
+                articles.append(
+                    Article(
+                        url=url,
+                        title=title,
+                        body=body,
+                        published_at=published_at,
+                        source="reuters",
+                    )
+                )
         return articles

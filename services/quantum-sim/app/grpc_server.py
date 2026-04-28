@@ -3,12 +3,19 @@
 Falls back gracefully if proto stubs have not been generated yet
 (run 'make proto' to generate them).
 """
-import grpc
+import os
+import sys
 from concurrent import futures
+from pathlib import Path
+
+import grpc
 
 from app.runner import get_entropy_bits, get_entropy_delta
 
-GRPC_PORT = 50052
+GRPC_PORT = int(os.getenv("QUANTUM_GRPC_PORT", "50052"))
+_PROTO_DIR = Path(__file__).parent / "proto"
+if _PROTO_DIR.exists() and str(_PROTO_DIR) not in sys.path:
+    sys.path.insert(0, str(_PROTO_DIR))
 
 
 def serve() -> None:
