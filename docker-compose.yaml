@@ -28,7 +28,7 @@ services:
       - "${INTELLIGENCE_HTTP_PORT:-8001}:8001"
       - "${INTELLIGENCE_GRPC_PORT:-50051}:50051"
     environment:
-      DATABASE_URL: postgres://${POSTGRES_USER:-life3}:${POSTGRES_PASSWORD:-life3}@postgres:5432/${POSTGRES_DB:-life3}
+      DATABASE_URL: ${DATABASE_URL:-postgres://${POSTGRES_USER:-life3}:${POSTGRES_PASSWORD:-life3}@postgres:5432/${POSTGRES_DB:-life3}}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-}
       USE_OLLAMA: ${USE_OLLAMA:-false}

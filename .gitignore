@@ -1,2 +1,3 @@
 /.ignore
 /services/intelligence/app/__pycache__
+.env.local

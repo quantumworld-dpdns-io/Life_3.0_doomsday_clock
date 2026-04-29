@@ -647,6 +647,16 @@ export const client = new ApolloClient({ link: splitLink, cache: new InMemoryCac
 | `api-gateway` | `./services/api-gateway` | 4000 | risk-engine, intelligence, nats |
 | `web` | `./apps/web` | 3000 | api-gateway |
 
+### 8.1.1 Supabase Database Option
+
+The intelligence service reads `DATABASE_URL`. For Supabase shared transaction pooler deployments, use:
+
+```bash
+DATABASE_URL=postgresql://postgres.meslvfoeoduhbsawgawz:YOUR_URL_ENCODED_PASSWORD@aws-1-ap-southeast-2.pooler.supabase.com:6543/postgres?sslmode=require
+```
+
+The Docker Compose default still points to the local `postgres` service, but an explicit `DATABASE_URL` environment variable overrides it. Keep the real password out of Git and configure it in `.env`, Vercel/Render/etc. environment variables, or the local shell.
+
 ### 8.2 `Makefile` Targets
 
 ```makefile

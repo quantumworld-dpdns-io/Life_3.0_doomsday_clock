@@ -1,8 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "vite",
-  "installCommand": "npm --prefix apps/web install",
-  "buildCommand": "npm --prefix apps/web run build",
+  "installCommand": "bash -lc 'if [ -d apps/web ]; then cd apps/web; else cd ../../apps/web; fi; npm install'",
+  "buildCommand": "bash -lc 'root=$(pwd); if [ -d apps/web ]; then web=$(cd apps/web && pwd); else web=$(cd ../../apps/web && pwd); fi; cd \"$web\"; npm run build; if [ \"$web/dist\" != \"$root/apps/web/dist\" ]; then mkdir -p \"$root/apps/web\"; rm -rf \"$root/apps/web/dist\"; cp -R \"$web/dist\" \"$root/apps/web/dist\"; fi'",
   "outputDirectory": "apps/web/dist",
   "rewrites": [
     {
