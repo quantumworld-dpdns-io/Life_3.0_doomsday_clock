@@ -1,20 +1,50 @@
-name: build
+name: Trivy CI Scan
+
 on:
   push:
     branches:
     - main
+    - dev
   pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
 jobs:
-  build:
-    name: Build
+  trivy:
+    name: Filesystem vulnerability, secret, and IaC scan
     runs-on: ubuntu-24.04
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Run Trivy vulnerability scanner in fs mode
+    - name: Run Trivy scan and write SARIF
       uses: aquasecurity/trivy-action@v0.36.0
       with:
         scan-type: 'fs'
         scan-ref: '.'
         trivy-config: trivy.yaml
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+        exit-code: '0'
+
+    - name: Upload Trivy SARIF to GitHub code scanning
+      uses: github/codeql-action/upload-sarif@v4
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+    - name: Fail on high or critical findings
+      uses: aquasecurity/trivy-action@v0.36.0
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        trivy-config: trivy.yaml
+        format: 'table'
+        severity: 'HIGH,CRITICAL'
+        ignore-unfixed: true
+        exit-code: '1'
+        skip-setup-trivy: true

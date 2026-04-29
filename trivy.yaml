@@ -1,0 +1,46 @@
+# Trivy filesystem scan config used by .github/workflows/trivy-ci-scan.yml.
+# scan-type and scan-ref are supplied by the GitHub Action.
+
+timeout: 10m
+cache:
+  dir: .cache/trivy
+
+severity:
+  - HIGH
+  - CRITICAL
+
+vulnerability:
+  ignore-unfixed: true
+
+secret:
+  config: config/trivy/secret.yaml
+
+misconfiguration:
+  include-non-failures: false
+  scanners:
+    - dockerfile
+    - kubernetes
+    - terraform
+    - cloudformation
+
+scan:
+  scanners:
+    - vuln
+    - secret
+    - misconfig
+  skip-dirs:
+    - .git
+    - .cache
+    - '**/node_modules'
+    - '**/dist'
+    - '**/build'
+    - '**/target'
+    - '**/.venv'
+    - '**/__pycache__'
+    - services/risk-engine/target
+  skip-files:
+    - '**/*.pyc'
+    - '**/*.pyo'
+    - '**/*.log'
+    - '**/.env'
+    - '**/.env.local'
