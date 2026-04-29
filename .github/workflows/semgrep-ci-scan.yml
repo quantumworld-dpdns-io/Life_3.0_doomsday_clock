@@ -1,0 +1,34 @@
+name: Semgrep CI Scan
+
+on:
+  push:
+    branches:
+    - main
+    - dev
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  semgrep:
+    name: Static application security scan
+    runs-on: ubuntu-24.04
+    container:
+      image: semgrep/semgrep
+    if: github.actor != 'dependabot[bot]'
+    env:
+      SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
+      SEMGREP_SEND_METRICS: 'off'
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Run Semgrep
+      run: |
+        if [ -n "$SEMGREP_APP_TOKEN" ]; then
+          semgrep ci
+        else
+          semgrep scan --config auto
+        fi
