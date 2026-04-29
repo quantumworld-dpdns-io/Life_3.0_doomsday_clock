@@ -13,5 +13,8 @@ RUN uv pip install --system --no-cache .
 
 COPY app/ ./app/
 
+RUN adduser --disabled-password --gecos '' --uid 1001 appuser && chown -R appuser /app
+USER appuser
+
 EXPOSE 8002 50052
 CMD ["uvicorn", "app.api:app", "--host", "0.0.0.0", "--port", "8002"]

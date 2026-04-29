@@ -16,9 +16,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libssl3 ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
+RUN adduser --disabled-password --gecos '' --uid 1001 appuser
 WORKDIR /app
 COPY --from=builder /app/target/release/risk-engine .
 COPY config/ ./config/
+RUN chown -R appuser /app
+USER appuser
 
 EXPOSE 8003 50053
 CMD ["./risk-engine"]

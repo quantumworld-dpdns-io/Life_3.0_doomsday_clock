@@ -3,7 +3,7 @@ COMPOSE ?= docker compose
 
 .DEFAULT_GOAL := help
 
-.PHONY: build up down logs lint test proto migrate clean config help
+.PHONY: build up down logs lint test security proto migrate clean config help
 
 build: ## Build Docker images for implemented services
 	$(COMPOSE) build
@@ -19,6 +19,9 @@ logs: ## Tail service logs
 
 test: ## Run available test suites
 	bash shared/scripts/test.sh
+
+security: ## Run local Trivy and Semgrep security scans when installed
+	bash shared/scripts/security_scan.sh
 
 lint: ## Run available linters
 	bash shared/scripts/lint.sh
