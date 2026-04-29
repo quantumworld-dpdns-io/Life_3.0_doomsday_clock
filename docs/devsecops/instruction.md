@@ -90,7 +90,7 @@ Semgrep Cloud login enables additional proprietary registry rules and custom org
 
 If Semgrep cannot reach `semgrep.dev`, rerun from a network-enabled terminal or CI runner. The token lives under `~/.semgrep`, outside the repository.
 
-In GitHub Actions, Semgrep uses `SEMGREP_APP_TOKEN` when that repository secret is configured. Without the secret, the workflow falls back to Semgrep Community Edition with `semgrep scan --config auto`.
+In GitHub Actions, Semgrep uses `SEMGREP_APP_TOKEN` when that repository secret is configured. Without the secret, the workflow falls back to Semgrep Community Edition with `semgrep scan --config auto --metrics=auto`. Semgrep requires metrics in `auto` mode because it uses telemetry to select and improve registry rules; use a checked-in local Semgrep rules file instead if CI must run with metrics disabled.
 
 ## Snyk
 

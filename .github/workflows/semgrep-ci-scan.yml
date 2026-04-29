@@ -20,7 +20,6 @@ jobs:
     if: github.actor != 'dependabot[bot]'
     env:
       SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
-      SEMGREP_SEND_METRICS: 'off'
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -30,5 +29,5 @@ jobs:
         if [ -n "$SEMGREP_APP_TOKEN" ]; then
           semgrep ci
         else
-          semgrep scan --config auto
+          semgrep scan --config auto --metrics=auto
         fi
