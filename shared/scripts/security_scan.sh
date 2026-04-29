@@ -9,6 +9,7 @@ mkdir -p "$DOCKER_CONFIG"
 
 export TRIVY_DB_REPOSITORY="${TRIVY_DB_REPOSITORY:-ghcr.io/aquasecurity/trivy-db}"
 export TRIVY_JAVA_DB_REPOSITORY="${TRIVY_JAVA_DB_REPOSITORY:-ghcr.io/aquasecurity/trivy-java-db}"
+export SEMGREP_LOG_FILE="${SEMGREP_LOG_FILE:-/tmp/life3-semgrep.log}"
 
 if [ -z "${SSL_CERT_FILE:-}" ] && command -v python3 >/dev/null 2>&1; then
   cert_file="$(python3 - <<'PY' 2>/dev/null || true

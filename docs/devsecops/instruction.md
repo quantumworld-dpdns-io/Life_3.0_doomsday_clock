@@ -53,6 +53,7 @@ The script also sets:
 - `DOCKER_CONFIG=/tmp/life3-empty-docker-config` by default, so Trivy does not trip over local Docker credential helpers when downloading its public vulnerability database.
 - `TRIVY_DB_REPOSITORY=ghcr.io/aquasecurity/trivy-db` and `TRIVY_JAVA_DB_REPOSITORY=ghcr.io/aquasecurity/trivy-java-db` by default.
 - `SSL_CERT_FILE` from Python `certifi` when available, which helps Semgrep on Homebrew Python installs with empty system trust anchors.
+- `SEMGREP_LOG_FILE=/tmp/life3-semgrep.log` by default, so sandboxed agents do not need write access to `~/.semgrep/semgrep.log`.
 
 ## Trivy
 
@@ -83,7 +84,7 @@ semgrep ci
 
 Semgrep Cloud login enables additional proprietary registry rules and custom org policies. Keep policy changes in Semgrep Cloud, not in this repo, unless a project-local Semgrep rule is intentionally added later.
 
-If Semgrep fails locally with a log-file permission error inside a sandboxed agent, run it from your normal terminal session. The token and log file live under `~/.semgrep`, outside the repository.
+If Semgrep cannot reach `semgrep.dev`, rerun from a network-enabled terminal or CI runner. The token lives under `~/.semgrep`, outside the repository.
 
 ## CI Expectations
 
