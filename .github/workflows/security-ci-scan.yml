@@ -1,0 +1,265 @@
+name: Security CI Scan
+
+on:
+  push:
+    branches:
+    - main
+    - staging
+    - dev
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+  issues: write
+
+jobs:
+  trivy:
+    name: Trivy filesystem, secret, and IaC scan
+    runs-on: ubuntu-24.04
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Prepare report directory
+      run: mkdir -p reports
+
+    - name: Run Trivy scan and write SARIF
+      uses: aquasecurity/trivy-action@v0.36.0
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        trivy-config: trivy.yaml
+        format: 'sarif'
+        output: 'reports/trivy-results.sarif'
+        exit-code: '0'
+
+    - name: Upload Trivy SARIF to GitHub code scanning
+      uses: github/codeql-action/upload-sarif@v4
+      if: always()
+      with:
+        sarif_file: 'reports/trivy-results.sarif'
+
+    - name: Run Trivy gate and write report
+      id: trivy_gate
+      continue-on-error: true
+      run: |
+        set +e
+        trivy fs --config trivy.yaml --format table --severity HIGH,CRITICAL --ignore-unfixed --exit-code 1 . > reports/trivy-report.txt
+        status=$?
+        echo "$status" > reports/trivy-exit-code.txt
+        exit "$status"
+
+    - name: Upload Trivy report
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: trivy-security-report
+        path: reports/
+        if-no-files-found: error
+
+  semgrep:
+    name: Semgrep static application security scan
+    runs-on: ubuntu-24.04
+    if: github.actor != 'dependabot[bot]'
+    env:
+      SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Prepare report directory
+      run: mkdir -p reports
+
+    - name: Install Semgrep CLI
+      run: |
+        python3 -m pip install --user semgrep
+        echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+    - name: Run Semgrep and write SARIF
+      id: semgrep_scan
+      continue-on-error: true
+      run: |
+        set +e
+        if [ -n "$SEMGREP_APP_TOKEN" ]; then
+          semgrep ci --sarif --output reports/semgrep-results.sarif
+        else
+          semgrep scan --config auto --metrics=auto --sarif --output reports/semgrep-results.sarif
+        fi
+        status=$?
+        echo "$status" > reports/semgrep-exit-code.txt
+        exit "$status"
+
+    - name: Upload Semgrep SARIF to GitHub code scanning
+      uses: github/codeql-action/upload-sarif@v4
+      if: always() && hashFiles('reports/semgrep-results.sarif') != ''
+      with:
+        sarif_file: 'reports/semgrep-results.sarif'
+
+    - name: Upload Semgrep report
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: semgrep-security-report
+        path: reports/
+        if-no-files-found: error
+
+  snyk:
+    name: Snyk dependency vulnerability scan
+    runs-on: ubuntu-24.04
+    env:
+      SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Prepare report directory
+      run: mkdir -p reports
+
+    - name: Record skipped Snyk scan
+      if: env.SNYK_TOKEN == ''
+      run: |
+        echo "SNYK_TOKEN is not configured; skipping Snyk scan." > reports/snyk-report.txt
+        echo "0" > reports/snyk-exit-code.txt
+
+    - name: Install Snyk CLI
+      if: env.SNYK_TOKEN != ''
+      uses: snyk/actions/setup@master
+
+    - name: Run Snyk test and write JSON report
+      if: env.SNYK_TOKEN != ''
+      id: snyk_scan
+      continue-on-error: true
+      run: |
+        set +e
+        snyk test --all-projects --detection-depth=6 --severity-threshold=high --json-file-output=reports/snyk-report.json
+        status=$?
+        echo "$status" > reports/snyk-exit-code.txt
+        exit "$status"
+
+    - name: Upload Snyk report
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: snyk-security-report
+        path: reports/
+        if-no-files-found: error
+
+  overall-report:
+    name: Generate overall security report
+    runs-on: ubuntu-24.04
+    needs:
+    - trivy
+    - semgrep
+    - snyk
+    if: always()
+    steps:
+    - name: Download scanner reports
+      uses: actions/download-artifact@v4
+      with:
+        path: scanner-reports
+
+    - name: Build overall report
+      id: report
+      env:
+        TRIVY_JOB_RESULT: ${{ needs.trivy.result }}
+        SEMGREP_JOB_RESULT: ${{ needs.semgrep.result }}
+        SNYK_JOB_RESULT: ${{ needs.snyk.result }}
+      run: |
+        mkdir -p reports
+        trivy_status="$(cat scanner-reports/trivy-security-report/trivy-exit-code.txt 2>/dev/null || { [ "$TRIVY_JOB_RESULT" = "skipped" ] && echo 0 || echo 1; })"
+        semgrep_status="$(cat scanner-reports/semgrep-security-report/semgrep-exit-code.txt 2>/dev/null || { [ "$SEMGREP_JOB_RESULT" = "skipped" ] && echo 0 || echo 1; })"
+        snyk_status="$(cat scanner-reports/snyk-security-report/snyk-exit-code.txt 2>/dev/null || { [ "$SNYK_JOB_RESULT" = "skipped" ] && echo 0 || echo 1; })"
+
+        trivy_findings="$(jq '[.runs[].results[]?] | length' scanner-reports/trivy-security-report/trivy-results.sarif 2>/dev/null || echo unknown)"
+        semgrep_findings="$(jq '[.runs[].results[]?] | length' scanner-reports/semgrep-security-report/semgrep-results.sarif 2>/dev/null || echo unknown)"
+        snyk_high="$(jq '[.. | objects | select(.severity? == "high")] | length' scanner-reports/snyk-security-report/snyk-report.json 2>/dev/null || echo 0)"
+        snyk_critical="$(jq '[.. | objects | select(.severity? == "critical")] | length' scanner-reports/snyk-security-report/snyk-report.json 2>/dev/null || echo 0)"
+
+        if [ "$trivy_status" = "0" ] && [ "$semgrep_status" = "0" ] && [ "$snyk_status" = "0" ]; then
+          overall_status="passed"
+        else
+          overall_status="failed"
+        fi
+
+        {
+          echo "# Security Scan Report"
+          echo
+          echo "- Workflow: $GITHUB_WORKFLOW"
+          echo "- Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          echo "- Commit: $GITHUB_SHA"
+          echo "- Ref: $GITHUB_REF"
+          echo "- Overall status: $overall_status"
+          echo
+          echo "## Summary"
+          echo
+          echo "| Scanner | Exit code | Reported findings | Notes |"
+          echo "| --- | ---: | ---: | --- |"
+          echo "| Trivy | $trivy_status | $trivy_findings | Job result: $TRIVY_JOB_RESULT. HIGH/CRITICAL gate uses Trivy config and ignores unfixed vulnerabilities. |"
+          echo "| Semgrep | $semgrep_status | $semgrep_findings | Job result: $SEMGREP_JOB_RESULT. Uses Semgrep Cloud when SEMGREP_APP_TOKEN is configured, otherwise Community Edition auto config. |"
+          echo "| Snyk | $snyk_status | high: $snyk_high, critical: $snyk_critical | Job result: $SNYK_JOB_RESULT. Skips when SNYK_TOKEN is not configured. |"
+          echo
+          echo "## Artifacts"
+          echo
+          echo "- trivy-security-report"
+          echo "- semgrep-security-report"
+          echo "- snyk-security-report"
+          echo "- overall-security-report"
+          echo
+          echo "Review the uploaded artifacts for full scanner output."
+        } > reports/security-overall-report.md
+
+        echo "overall_status=$overall_status" >> "$GITHUB_OUTPUT"
+
+    - name: Upload overall report
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: overall-security-report
+        path: reports/security-overall-report.md
+        if-no-files-found: error
+
+    - name: Create or update security report issue
+      uses: actions/github-script@v7
+      if: always() && github.event_name != 'pull_request'
+      with:
+        script: |
+          const fs = require('fs');
+          const report = fs.readFileSync('reports/security-overall-report.md', 'utf8');
+          const title = 'Security scan report';
+          const marker = '<!-- security-scan-report -->';
+          const body = `${marker}\n${report}`;
+          const { owner, repo } = context.repo;
+          const { data: issues } = await github.rest.issues.listForRepo({
+            owner,
+            repo,
+            state: 'open',
+            per_page: 100,
+          });
+          const existing = issues.find((issue) =>
+            issue.title === title &&
+            !issue.pull_request &&
+            issue.body &&
+            issue.body.includes(marker)
+          );
+          if (existing) {
+            await github.rest.issues.update({
+              owner,
+              repo,
+              issue_number: existing.number,
+              body,
+            });
+          } else {
+            await github.rest.issues.create({
+              owner,
+              repo,
+              title,
+              body,
+            });
+          }
+
+    - name: Fail workflow when scanner gate fails
+      if: steps.report.outputs.overall_status != 'passed'
+      run: exit 1

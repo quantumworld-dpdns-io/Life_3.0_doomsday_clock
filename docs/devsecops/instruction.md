@@ -59,7 +59,7 @@ The script also sets:
 
 Tracked files:
 
-- `.github/workflows/trivy-ci-scan.yml`
+- `.github/workflows/security-ci-scan.yml`
 - `trivy.yaml`
 - `config/trivy/secret.yaml`
 - `.trivyignore`
@@ -70,7 +70,7 @@ The Trivy scan covers:
 - secret detection
 - IaC/misconfiguration checks
 
-The CI workflow writes SARIF and uploads it to GitHub code scanning. It gates the workflow on `HIGH` and `CRITICAL` findings while ignoring unfixed vulnerabilities.
+The security CI workflow writes SARIF and uploads it to GitHub code scanning. It gates the workflow on `HIGH` and `CRITICAL` findings while ignoring unfixed vulnerabilities.
 
 Use `.trivyignore` only for accepted findings. Each ignored ID should have a short justification in the PR or commit message.
 
@@ -78,7 +78,7 @@ Use `.trivyignore` only for accepted findings. Each ignored ID should have a sho
 
 Tracked files:
 
-- `.github/workflows/semgrep-ci-scan.yml`
+- `.github/workflows/security-ci-scan.yml`
 
 Local authenticated scan:
 
@@ -96,7 +96,7 @@ In GitHub Actions, Semgrep uses `SEMGREP_APP_TOKEN` when that repository secret 
 
 Tracked files:
 
-- `.github/workflows/snyk-ci-scan.yml`
+- `.github/workflows/security-ci-scan.yml`
 
 Snyk requires a repository secret named `SNYK_TOKEN`. The GitHub Actions workflow skips Snyk when the token is not configured, which keeps pull requests from forks from failing only because secrets are unavailable.
 
@@ -106,6 +106,10 @@ Local authenticated scan:
 snyk auth
 snyk test --all-projects --detection-depth=6 --severity-threshold=high
 ```
+
+## Security CI Reports
+
+The single security pipeline is `.github/workflows/security-ci-scan.yml`. It runs Trivy, Semgrep, and Snyk, uploads individual scanner artifacts, generates `security-overall-report.md`, and creates or updates a GitHub issue titled `Security scan report` on push and manual runs. Pull request runs still generate artifacts, but they do not create issues.
 
 ## CI Expectations
 
