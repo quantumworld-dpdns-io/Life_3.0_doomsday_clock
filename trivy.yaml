@@ -1,4 +1,4 @@
-# Trivy filesystem scan config used by .github/workflows/trivy-ci-scan.yml.
+# Trivy filesystem scan config used by .github/workflows/security-ci-scan.yml.
 # scan-type and scan-ref are supplied by the GitHub Action.
 
 timeout: 10m
